@@ -685,7 +685,7 @@ pytest = [
 ]
 
 [[package]]
-name = "tdom"
+name = "tdomx"
 version = "0.1.14"
 source = { editable = "." }
 dependencies = [

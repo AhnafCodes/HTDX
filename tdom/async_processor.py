@@ -57,8 +57,11 @@ async def _node_from_value_async(value: object) -> Node:
             # Since we don't know if the iterable yields coroutines or values,
             # we have to iterate and process.
             # To maximize parallelism, we can gather.
-            tasks = [_node_from_value_async(v) for v in value]
-            children = await asyncio.gather(*tasks)
+            tasks = []
+            async with asyncio.TaskGroup() as tg:
+                for v in value:
+                    tasks.append(tg.create_task(_node_from_value_async(v)))
+            children = [task.result() for task in tasks]
             return Fragment(children=children)
         case HasHTMLDunder():
             return Text(Markup(value.__html__()))
@@ -121,8 +124,11 @@ async def _substitute_and_flatten_children_async(
     Substitute placeholders in a list of children and flatten any fragments asynchronously.
     """
     # Create tasks for all children to resolve them in parallel
-    tasks = [_resolve_t_node_async(child, interpolations) for child in children]
-    resolved = await asyncio.gather(*tasks)
+    tasks = []
+    async with asyncio.TaskGroup() as tg:
+        for child in children:
+            tasks.append(tg.create_task(_resolve_t_node_async(child, interpolations)))
+    resolved = [task.result() for task in tasks]
     flat = flatten_nodes(resolved)
     return flat
 
@@ -137,21 +143,21 @@ async def _resolve_t_text_ref_async(
     # Resolve interpolated parts in parallel; string literals don't need async.
     sync_parts: list[tuple[int, Node]] = []
     async_tasks: list[tuple[int, asyncio.Task]] = []
-    for i, part in enumerate(resolve_ref(ref, interpolations)):
-        if isinstance(part, str):
-            sync_parts.append((i, Text(part)))
-        else:
-            val = format_interpolation(part)
-            async_tasks.append((i, asyncio.create_task(_node_from_value_async(val))))
-
-    async_results = await asyncio.gather(*(task for _, task in async_tasks))
+    
+    async with asyncio.TaskGroup() as tg:
+        for i, part in enumerate(resolve_ref(ref, interpolations)):
+            if isinstance(part, str):
+                sync_parts.append((i, Text(part)))
+            else:
+                val = format_interpolation(part)
+                async_tasks.append((i, tg.create_task(_node_from_value_async(val))))
 
     # Reassemble in original order
     parts: list[Node] = [None] * (len(sync_parts) + len(async_tasks))
     for idx, node in sync_parts:
         parts[idx] = node
-    for (idx, _), node in zip(async_tasks, async_results):
-        parts[idx] = node
+    for idx, task in async_tasks:
+        parts[idx] = task.result()
 
     flat = flatten_nodes(parts)
 

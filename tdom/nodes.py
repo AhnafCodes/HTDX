@@ -1,5 +1,6 @@
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass, field
-from typing import Iterator, Sequence
+from typing import override
 
 from .escaping import (
     escape_html_comment,
@@ -153,10 +154,12 @@ class Node:
 class Text(Node):
     text: str  # which may be markupsafe.Markup in practice.
 
+    @override
     def __str__(self) -> str:
         # Use markupsafe's escape to handle HTML escaping
         return escape_html_text(self.text)
 
+    @override
     def render_chunks(self) -> Iterator[str]:
         yield str(self)
 
@@ -170,9 +173,11 @@ class Text(Node):
 class Fragment(Node):
     children: Sequence[Node] = field(default_factory=list)
 
+    @override
     def __str__(self) -> str:
         return "".join(str(child) for child in self.children)
 
+    @override
     def render_chunks(self) -> Iterator[str]:
         for child in self.children:
             yield from child.render_chunks()
@@ -182,9 +187,11 @@ class Fragment(Node):
 class Comment(Node):
     text: str
 
+    @override
     def __str__(self) -> str:
         return f"<!--{escape_html_comment(self.text)}-->"
 
+    @override
     def render_chunks(self) -> Iterator[str]:
         yield str(self)
 
@@ -193,9 +200,11 @@ class Comment(Node):
 class DocumentType(Node):
     text: str = "html"
 
+    @override
     def __str__(self) -> str:
         return f"<!DOCTYPE {self.text}>"
 
+    @override
     def render_chunks(self) -> Iterator[str]:
         yield str(self)
 
@@ -245,6 +254,7 @@ class Element(Node):
         else:
             return "".join(str(child) for child in self.children)
 
+    @override
     def __str__(self) -> str:
         attrs_str = format_attributes(self.attrs)
         if self.is_void:
@@ -254,6 +264,7 @@ class Element(Node):
         children_str = self._children_to_str()
         return f"<{self.tag}{attrs_str}>{children_str}</{self.tag}>"
 
+    @override
     def render_chunks(self) -> Iterator[str]:
         attrs_str = format_attributes(self.attrs)
         if self.is_void:

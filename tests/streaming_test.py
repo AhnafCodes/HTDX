@@ -1,8 +1,8 @@
-import asyncio
-
 import pytest
-from tdom import html, html_async, html_stream, html_stream_async
+from tdom import html, html_stream, html_stream_async
 from tdom.nodes import Element, Text, Fragment, Comment, DocumentType
+import asyncio
+from string.templatelib import Template
 
 
 def test_streaming_basic_element():
@@ -71,24 +71,22 @@ async def test_async_streaming():
     chunks = []
     async for chunk in html_stream_async(template):
         chunks.append(chunk)
-
+    
     assert "".join(chunks) == "<div>Async Stream</div>"
     assert chunks == ['<div>', 'Async Stream', '</div>']
 
 
 @pytest.mark.asyncio
 async def test_async_streaming_with_async_component():
-    async def AsyncGreeting(name: str):
+    async def AsyncData(value: str) -> Template:
         await asyncio.sleep(0.001)
-        return t"<span>Hello, {name}!</span>"
+        return t"<span>{value}</span>"
 
+    template = t"<div><{AsyncData} value='Loaded' /></div>"
     chunks = []
-    async for chunk in html_stream_async(t"<div><{AsyncGreeting} name='Alice' /></div>"):
+    async for chunk in html_stream_async(template):
         chunks.append(chunk)
-
-    joined = "".join(chunks)
-    assert joined == "<div><span>Hello, Alice!</span></div>"
-    # The inner template's interpolation produces separate text nodes,
-    # so we verify the overall output rather than exact chunk boundaries.
-    assert chunks[0] == '<div>'
-    assert chunks[-1] == '</div>'
+    
+    assert "".join(chunks) == "<div><span>Loaded</span></div>"
+    # Expected: <div>, <span>, Loaded, </span>, </div>
+    assert chunks == ['<div>', '<span>', 'Loaded', '</span>', '</div>']
