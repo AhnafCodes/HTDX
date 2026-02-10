@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from string.templatelib import Interpolation, Template
 
-from .nodes import VOID_ELEMENTS
+from .nodes import VOID_ELEMENTS, SVG_CASE_FIX, SVG_TAG_FIX
 from .placeholders import PlaceholderState
 from .tnodes import (
     TAttribute,
@@ -112,6 +112,11 @@ class TemplateParser(HTMLParser):
         """Build a TAttribute from a raw attribute tuple."""
 
         name, value = attr
+        
+        # Fix case for SVG attributes
+        if name in SVG_CASE_FIX:
+            name = SVG_CASE_FIX[name]
+            
         name_ref = self.placeholders.remove_placeholders(name)
         value_ref = (
             self.placeholders.remove_placeholders(value) if value is not None else None
@@ -146,6 +151,11 @@ class TemplateParser(HTMLParser):
 
     def make_open_tag(self, tag: str, attrs: t.Sequence[HTMLAttribute]) -> OpenTag:
         """Build an OpenTag from a raw tag and attribute tuples."""
+        
+        # Fix case for SVG tags
+        if tag in SVG_TAG_FIX:
+            tag = SVG_TAG_FIX[tag]
+            
         tag_ref = self.placeholders.remove_placeholders(tag)
 
         if tag_ref.is_literal:
@@ -189,6 +199,11 @@ class TemplateParser(HTMLParser):
     def validate_end_tag(self, tag: str, open_tag: OpenTag) -> int | None:
         """Validate that closing tag matches open tag. Return component end index if applicable."""
         assert self.source, "Parser source tracker not initialized."
+        
+        # Fix case for SVG tags
+        if tag in SVG_TAG_FIX:
+            tag = SVG_TAG_FIX[tag]
+
         tag_ref = self.placeholders.remove_placeholders(tag)
 
         match open_tag:
