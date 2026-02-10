@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Iterator, Sequence
 
 from .escaping import (
     escape_html_comment,
@@ -124,6 +125,14 @@ RCDATA_CONTENT_ELEMENTS = frozenset(["textarea", "title"])
 CONTENT_ELEMENTS = CDATA_CONTENT_ELEMENTS | RCDATA_CONTENT_ELEMENTS
 
 
+def format_attributes(attrs: dict[str, str | None]) -> str:
+    """Format a dictionary of attributes into an HTML attribute string."""
+    return "".join(
+        f" {key}" if value is None else f' {key}="{escape_html_text(value)}"'
+        for key, value in attrs.items()
+    )
+
+
 # FUTURE: add a pretty-printer to nodes for debugging
 # FUTURE: make nodes frozen (and have the parser work with mutable builders)
 
@@ -135,6 +144,10 @@ class Node:
         # By default, just return the string representation
         return str(self)
 
+    def render_chunks(self) -> Iterator[str]:
+        """Yield chunks of the HTML representation of the node."""
+        yield str(self)
+
 
 @dataclass(slots=True)
 class Text(Node):
@@ -144,6 +157,9 @@ class Text(Node):
         # Use markupsafe's escape to handle HTML escaping
         return escape_html_text(self.text)
 
+    def render_chunks(self) -> Iterator[str]:
+        yield str(self)
+
     def __eq__(self, other: object) -> bool:
         # This is primarily of use for testing purposes. We only consider
         # two Text nodes equal if their string representations match.
@@ -152,10 +168,14 @@ class Text(Node):
 
 @dataclass(slots=True)
 class Fragment(Node):
-    children: list[Node] = field(default_factory=list)
+    children: Sequence[Node] = field(default_factory=list)
 
     def __str__(self) -> str:
         return "".join(str(child) for child in self.children)
+
+    def render_chunks(self) -> Iterator[str]:
+        for child in self.children:
+            yield from child.render_chunks()
 
 
 @dataclass(slots=True)
@@ -165,6 +185,9 @@ class Comment(Node):
     def __str__(self) -> str:
         return f"<!--{escape_html_comment(self.text)}-->"
 
+    def render_chunks(self) -> Iterator[str]:
+        yield str(self)
+
 
 @dataclass(slots=True)
 class DocumentType(Node):
@@ -173,12 +196,15 @@ class DocumentType(Node):
     def __str__(self) -> str:
         return f"<!DOCTYPE {self.text}>"
 
+    def render_chunks(self) -> Iterator[str]:
+        yield str(self)
+
 
 @dataclass(slots=True)
 class Element(Node):
     tag: str
     attrs: dict[str, str | None] = field(default_factory=dict)
-    children: list[Node] = field(default_factory=list)
+    children: Sequence[Node] = field(default_factory=list)
 
     def __post_init__(self):
         """Ensure all preconditions are met."""
@@ -220,15 +246,32 @@ class Element(Node):
             return "".join(str(child) for child in self.children)
 
     def __str__(self) -> str:
-        # We use markupsafe's escape to handle HTML escaping of attribute values
-        # which means it's possible to mark them as safe if needed.
-        attrs_str = "".join(
-            f" {key}" if value is None else f' {key}="{escape_html_text(value)}"'
-            for key, value in self.attrs.items()
-        )
+        attrs_str = format_attributes(self.attrs)
         if self.is_void:
             return f"<{self.tag}{attrs_str} />"
         if not self.children:
             return f"<{self.tag}{attrs_str}></{self.tag}>"
         children_str = self._children_to_str()
         return f"<{self.tag}{attrs_str}>{children_str}</{self.tag}>"
+
+    def render_chunks(self) -> Iterator[str]:
+        attrs_str = format_attributes(self.attrs)
+        if self.is_void:
+            yield f"<{self.tag}{attrs_str} />"
+            return
+
+        yield f"<{self.tag}{attrs_str}>"
+
+        if not self.children:
+            yield f"</{self.tag}>"
+            return
+
+        if self.tag in ("script", "style"):
+            # Script and style tags are special; they can't be streamed chunk-by-chunk
+            # in the same way because we need to apply bulk escaping to their content.
+            yield self._children_to_str()
+        else:
+            for child in self.children:
+                yield from child.render_chunks()
+
+        yield f"</{self.tag}>"

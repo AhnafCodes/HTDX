@@ -23,6 +23,9 @@ class CallableInfo:
     kwargs: bool
     """Whether the callable accepts **kwargs."""
 
+    is_async: bool
+    """Whether the callable is a coroutine function."""
+
     @classmethod
     def from_callable(cls, c: t.Callable) -> t.Self:
         """Create a CallableInfo from a callable."""
@@ -62,6 +65,7 @@ class CallableInfo:
             required_named_params=frozenset(required_named_params),
             requires_positional=requires_positional,
             kwargs=kwargs,
+            is_async=inspect.iscoroutinefunction(c),
         )
 
     @property
