@@ -1,10 +1,10 @@
 # Django Integration
 
-`tdom` can be integrated into Django as a custom template backend. This allows you to use `tdom` components in your views just like standard Django templates.
+`tdom` can be integrated into Django  as a custom template backend. This allows you to use `tdom` components in your views just like standard Django templates.
 
 ## ⚠️ Limitations & Requirements
 
-*   **Python 3.14+**: Required for `tdom`. Ensure your Django version is compatible.
+*   **Python 3.14+**: Required for `tdom`. Ensure you are on Django 6+.
 *   **No Context Processors**: Standard Django context processors (e.g., `auth`, `messages`) are **not** automatically executed. You must pass required data (like `user` or `messages`) explicitly from your views.
 *   **No Template Tags**: Django template tags and filters (e.g., `{% url %}`, `|date`) do not work. Use their Python equivalents directly (e.g., `django.urls.reverse`, `django.templatetags.static.static`).
 *   **Caching**: Since components are Python modules, changes in development may require a server restart to reflect updates due to Python's module caching.
