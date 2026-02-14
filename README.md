@@ -12,7 +12,10 @@ A 🤘 rockin' t-string HTML templating system for Python 3.14.
 
 ## NOTE WELL
 
-This is pre-alpha software. It is still under heavy development and the API may change without warning. We would love community feedback to help shape the direction of this project!
+This is pre-alpha software. It is still under heavy development and the API may change without warning. 
+We would love community feedback to help shape the direction of this project!
+
+tdom is "HTML in Python", not "Python in HTML files."
 
 ## Installation
 
