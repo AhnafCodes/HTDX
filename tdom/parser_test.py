@@ -465,3 +465,46 @@ def test_adjacent_end_component_tag_error():
 
     with pytest.raises(ValueError):
         _ = TemplateParser.parse(t"<{Component}></{Component}{Component}>")
+
+
+#
+# SVG
+#
+def test_parse_svg_tag_case_fixing():
+    node = TemplateParser.parse(t"<svg><clipPath></clipPath></svg>")
+    assert node == TElement(
+        "svg",
+        children=(TElement("clipPath"),),
+    )
+
+
+def test_parse_svg_attribute_case_fixing():
+    node = TemplateParser.parse(t'<svg viewBox="0 0 10 10"></svg>')
+    assert node == TElement(
+        "svg",
+        attrs=(TLiteralAttribute("viewBox", "0 0 10 10"),),
+    )
+
+
+def test_parse_svg_nested_depth():
+    node = TemplateParser.parse(t"<svg><g><clipPath /></g></svg>")
+    assert node == TElement(
+        "svg",
+        children=(
+            TElement("g", children=(TElement("clipPath"),)),
+        ),
+    )
+
+
+def test_parse_svg_self_closing():
+    node = TemplateParser.parse(t'<svg viewBox="0 0 10 10" />')
+    assert node == TElement(
+        "svg",
+        attrs=(TLiteralAttribute("viewBox", "0 0 10 10"),),
+    )
+
+
+def test_parse_non_svg_context():
+    # clipPath outside svg should be lowercase (or whatever HTMLParser does, which is lowercase)
+    node = TemplateParser.parse(t"<clipPath></clipPath>")
+    assert node == TElement("clippath")
