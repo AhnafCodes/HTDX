@@ -1,6 +1,7 @@
 from string.templatelib import Interpolation
 
-from .format import convert, format_interpolation, format_template
+from tdom.format import convert, format_interpolation, format_template
+from tdom.template_utils import t
 
 
 class Convertible:
@@ -94,6 +95,6 @@ def test_format_interpolation_custom_formatter_match_predicate():
 
 
 def test_format_template():
-    t = t"Value: {42.19:.1f}, Text: {Convertible()!s}, Raw: {Convertible()!r}"
-    result = format_template(t)
+    template = t"Value: {42.19:.1f}, Text: {Convertible()!s}, Raw: {Convertible()!r}"
+    result = format_template(template)
     assert result == "Value: 42.2, Text: Convertible str, Raw: Convertible repr"

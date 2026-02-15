@@ -51,11 +51,11 @@ dev = [
 ]
 
 [tool.pytest]
-testpaths = ["tdom", "docs", "README.md"]
+testpaths = ["tests", "docs", "README.md"]
 python_files = ["*_test.py"]
 
 [tool.pyright]
-include = ["tdom"]
+include = ["tdom", "tests"]
 exclude = [".venv", ".git", ".github"]
 
 [tool.ruff.lint]
@@ -64,4 +64,3 @@ preview = true
 [tool.uv.build-backend]
 module-name = "tdom"
 module-root = ""
-source-exclude = ["*_test.py"]

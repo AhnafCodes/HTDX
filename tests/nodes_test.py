@@ -1,7 +1,7 @@
 import pytest
 from markupsafe import Markup
 
-from .nodes import Comment, DocumentType, Element, Fragment, Text
+from tdom.nodes import Comment, DocumentType, Element, Fragment, Text
 
 
 def test_comment():
@@ -183,7 +183,7 @@ def test_complex_tree():
                                 "p",
                                 children=[
                                     Text("This is a sample paragraph with "),
-                                    Element("strong", children=[Text("bold text")]),
+                                    Element("strong", children=[Text("strong text")]),
                                     Text(" and "),
                                     Element("em", children=[Text("italic text")]),
                                     Text("."),
@@ -208,7 +208,7 @@ def test_complex_tree():
         "<!DOCTYPE html><html><head><title>Test Page</title>"
         '<meta charset="UTF-8" /></head><body class="main-body">'
         "<h1>Welcome to the Test Page</h1>"
-        "<p>This is a sample paragraph with <strong>bold text</strong> and "
+        "<p>This is a sample paragraph with <strong>strong text</strong> and "
         "<em>italic text</em>.</p><br /><ul><li>Item 1</li><li>Item 2</li>"
         "<li>Item 3</li></ul></body></html>"
     )

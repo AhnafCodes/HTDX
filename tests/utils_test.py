@@ -1,4 +1,5 @@
-from .utils import CachableTemplate, LastUpdatedOrderedDict
+from tdom.utils import CachableTemplate, LastUpdatedOrderedDict
+from tdom.template_utils import t
 
 
 def test_last_updated_ordered_dict() -> None:

@@ -7,9 +7,9 @@ from itertools import product
 import pytest
 from markupsafe import Markup
 
-from .nodes import Comment, DocumentType, Element, Fragment, Node, Text
-from .placeholders import make_placeholder_config
-from .processor import html
+from tdom.nodes import Comment, DocumentType, Element, Fragment, Node, Text
+from tdom.placeholders import make_placeholder_config
+from tdom.processor import html
 
 # --------------------------------------------------------------------------
 # Basic HTML parsing tests

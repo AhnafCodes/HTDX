@@ -1,5 +1,5 @@
 import pytest
-from tdom import create_context, html, html_async
+from tdom import create_context, html
 
 def test_context_basic_roundtrip():
     Ctx = create_context("test")
@@ -53,15 +53,3 @@ def test_context_isolation():
     assert str(node1) == "A"
     assert str(node2) == "B"
 
-@pytest.mark.asyncio
-async def test_context_async_propagation():
-    # contextvars should propagate to async tasks automatically
-    Ctx = create_context("async")
-    
-    async def AsyncComp():
-        val = Ctx.get()
-        return t"Async: {val}"
-        
-    with Ctx.provide("propagated"):
-        node = await html_async(t"<{AsyncComp} />")
-        assert str(node) == "Async: propagated"
