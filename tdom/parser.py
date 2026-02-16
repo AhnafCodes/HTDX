@@ -26,19 +26,19 @@ type HTMLAttribute = tuple[str, str | None]
 type HTMLAttributesDict = dict[str, str | None]
 
 
-@dataclass
+@dataclass(slots=True)
 class OpenTElement:
     tag: str
     attrs: tuple[TAttribute, ...]
     children: list[TNode] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(slots=True)
 class OpenTFragment:
     children: list[TNode] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(slots=True)
 class OpenTComponent:
     start_i_index: int
     attrs: tuple[TAttribute, ...]
@@ -48,7 +48,7 @@ class OpenTComponent:
 type OpenTag = OpenTElement | OpenTFragment | OpenTComponent
 
 
-@dataclass
+@dataclass(slots=True)
 class SourceTracker:
     """Tracks source locations within a Template for error reporting."""
 
