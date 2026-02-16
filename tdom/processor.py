@@ -177,7 +177,7 @@ def make_style_accumulator(old_value: object) -> StyleAccumulator:
     return StyleAccumulator(styles=styles)
 
 
-@dataclass
+@dataclass(slots=True)
 class StyleAccumulator:
     styles: dict[str, str | None]
 
@@ -230,7 +230,7 @@ def make_class_accumulator(old_value: object) -> ClassAccumulator:
     return ClassAccumulator(toggled_classes=toggled_classes)
 
 
-@dataclass
+@dataclass(slots=True)
 class ClassAccumulator:
     toggled_classes: dict[str, bool]
 
