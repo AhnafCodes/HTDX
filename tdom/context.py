@@ -8,6 +8,8 @@ _MISSING = object()
 class Context[T]:
     """A scoped context for sharing data across components without prop drilling."""
 
+    __slots__ = ("_var", "name")
+
     def __init__(self, name: str, *, default: T = _MISSING):
         if default is _MISSING:
             self._var: contextvars.ContextVar[T] = contextvars.ContextVar(name)

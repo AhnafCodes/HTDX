@@ -13,6 +13,8 @@ class LastUpdatedOrderedDict(OrderedDict):
 
 
 class CachableTemplate:
+    __slots__ = ("template",)
+
     template: Template
 
     # CONSIDER: what about interpolation format specs, convsersions, etc.?
