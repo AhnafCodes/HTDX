@@ -470,6 +470,7 @@ def _invoke_component(
     and passed as keyword arguments if the callable accepts them (or has
     **kwargs). Attributes that don't match parameters are silently ignored.
     """
+    component_name = interpolation.expression or "unknown component"
     value = format_interpolation(interpolation)
     if not callable(value):
         raise TypeError(
@@ -478,9 +479,11 @@ def _invoke_component(
     callable_info = get_callable_info(value)
 
     if callable_info.requires_positional:
-        raise TypeError(
+        err = TypeError(
             "Component callables cannot have required positional arguments."
         )
+        err.add_note(f"While invoking component: {component_name}")
+        raise err
 
     kwargs: AttributesDict = {}
 
@@ -497,11 +500,17 @@ def _invoke_component(
     # Check to make sure we've fully satisfied the callable's requirements
     missing = callable_info.required_named_params - kwargs.keys()
     if missing:
-        raise TypeError(
+        err = TypeError(
             f"Missing required parameters for component: {', '.join(missing)}"
         )
+        err.add_note(f"While invoking component: {component_name}")
+        raise err
 
-    result = value(**kwargs)
+    try:
+        result = value(**kwargs)
+    except TypeError as e:
+        e.add_note(f"While invoking component: {component_name}")
+        raise
     return _node_from_value(result)
 
 
