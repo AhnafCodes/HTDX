@@ -1,5 +1,6 @@
 from markupsafe import Markup, escape
 from .async_processor import html_async
+from .conditional import When, cond
 from .context import create_context
 from .nodes import Comment, DocumentType, Element, Fragment, Node, Text, serialize
 from .processor import html
@@ -8,6 +9,7 @@ from .processor import html
 
 __all__ = [
     "Comment",
+    "cond",
     "DocumentType",
     "Element",
     "escape",
@@ -18,4 +20,5 @@ __all__ = [
     "Node",
     "serialize",
     "Text",
+    "When",
 ]
