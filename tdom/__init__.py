@@ -1,6 +1,6 @@
 from markupsafe import Markup, escape
 from .async_processor import html_async, svg_async
-from .conditional import When, cond
+from .conditional import Conditions, cond
 from .context import create_context
 from .nodes import Comment, DocumentType, Element, Fragment, Node, Text, serialize
 from .processor import html, svg
@@ -22,5 +22,5 @@ __all__ = [
     "svg",
     "svg_async",
     "Text",
-    "When",
+    "Conditions",
 ]
