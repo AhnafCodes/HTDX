@@ -189,7 +189,8 @@ class TemplateParser(HTMLParser):
     source: SourceTracker | None
     _svg_depth: int = 0
 
-    def __init__(self, *, convert_charrefs: bool = True):
+    def __init__(self, *, convert_charrefs: bool = True, svg_context: bool = False):
+        self._initial_svg_depth = 1 if svg_context else 0
         # This calls HTMLParser.reset() which we override to set up our state.
         super().__init__(convert_charrefs=convert_charrefs)
 
@@ -415,7 +416,7 @@ class TemplateParser(HTMLParser):
         self.stack = []
         self.placeholders = PlaceholderState()
         self.source = None
-        self._svg_depth = 0
+        self._svg_depth = getattr(self, "_initial_svg_depth", 0)
 
     def close(self) -> None:
         if self.stack:
@@ -477,9 +478,7 @@ class TemplateParser(HTMLParser):
         Pass ``svg_context=True`` for SVG fragments that have no ``<svg>``
         wrapper, so that tag and attribute case-fixing applies from the root.
         """
-        parser = TemplateParser()
-        if svg_context:
-            parser._svg_depth = 1
+        parser = TemplateParser(svg_context=svg_context)
         parser.feed_template(t)
         parser.close()
         return parser.get_tnode()
